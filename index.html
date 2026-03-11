@@ -59,10 +59,9 @@
 </div>
 
 <script>
-    // 본인의 구글 웹 앱 URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw38RT0MVkzhkuiCUqrWiilPfwEZdBrh65orlmbn-tJYgJQG71KSGL2uB9GTJC7I1p8QQ/exec";
 
-    let currentMode = 'write'; // 'write' 또는 'edit'
+    let currentMode = 'write'; 
     let currentEditId = null;
 
     function toggleScreen(screen) {
@@ -72,7 +71,6 @@
         } else {
             document.getElementById('list-view').style.display = 'block';
             document.getElementById('write-view').style.display = 'none';
-            // 폼 초기화
             document.getElementById('title').value = '';
             document.getElementById('content').value = '';
             document.getElementById('password').value = '';
@@ -92,7 +90,7 @@
         contentBox.style.display = (contentBox.style.display === "block") ? "none" : "block";
     }
 
-    // 🌟 게시글 불러오기: 오류 방지(안전 장치) 기능이 추가된 부분
+    // 🌟 어떤 형태의 데이터가 들어와도 완벽하게 처리하는 마법의 함수
     async function loadPosts() {
         const list = document.getElementById('posts-list');
         try {
@@ -100,17 +98,26 @@
             const data = await response.json();
             
             if (!data || data.length === 0) {
-                list.innerHTML = "<div class='loading'>아직 등록된 글이 없습니다. 첫 글을 남겨보세요!</div>";
+                list.innerHTML = "<div class='loading'>아직 등록된 글이 없습니다.</div>";
                 return;
             }
 
             list.innerHTML = data.reverse().map(post => {
-                // 어떤 데이터가 들어와도 문자열(String)로 변환해서 에러를 막습니다.
-                const safeTitle = String(post.title || '제목 없음');
-                const safeContent = String(post.content || '내용 없음');
-                const safeId = post.id || '';
+                // 서버가 객체로 주든, 배열로 주든 무조건 찾아냅니다.
+                const rawId = post.id || post[0];
+                const safeTitle = String(post.title || post[1] || '제목 없음');
+                const safeContent = String(post.content || post[2] || '내용 없음');
 
-                // 따옴표나 줄바꿈이 코드를 망가뜨리지 않도록 처리
+                // 1970년 에러를 막는 핵심 날짜 변환기
+                let displayDate = "";
+                if (!rawId) {
+                    displayDate = "날짜 표기 불가 (고유ID 없음)";
+                } else if (isNaN(Number(rawId))) {
+                    displayDate = new Date(rawId).toLocaleString('ko-KR'); // 시트에 적힌 글자 그대로의 날짜일 경우
+                } else {
+                    displayDate = new Date(Number(rawId)).toLocaleString('ko-KR'); // 정상적인 고유 숫자일 경우
+                }
+
                 const escapedTitle = safeTitle.replace(/'/g, "\\'");
                 const escapedContent = safeContent.replace(/'/g, "\\'").replace(/\n/g, "\\n");
 
@@ -118,25 +125,23 @@
                 <div class="post-item">
                     <div class="post-title-box" onclick="toggleContent(this)">
                         <div class="post-title">${safeTitle}</div>
-                        <div class="post-date">${new Date(Number(safeId)).toLocaleString('ko-KR')}</div>
+                        <div class="post-date">${displayDate}</div>
                     </div>
                     <div class="post-content-box">
                         <div>${safeContent}</div>
                         <div class="action-buttons">
-                            <button class="btn-small btn-edit" onclick="openEditForm('${safeId}', '${escapedTitle}', '${escapedContent}')">수정</button>
-                            <button class="btn-small btn-delete" onclick="deletePost('${safeId}')">삭제</button>
+                            <button class="btn-small btn-edit" onclick="openEditForm('${rawId}', '${escapedTitle}', '${escapedContent}')">수정</button>
+                            <button class="btn-small btn-delete" onclick="deletePost('${rawId}')">삭제</button>
                         </div>
                     </div>
                 </div>
                 `;
             }).join('');
         } catch (e) {
-            // 이제 어디서 고장 났는지 화면에 빨간 글씨로 정확히 알려줍니다.
-            list.innerHTML = `<div class='loading' style='color:red;'>데이터를 불러올 수 없습니다.<br>상세: ${e.message}</div>`;
+            list.innerHTML = `<div class='loading'>데이터를 불러올 수 없습니다.</div>`;
         }
     }
 
-    // 새 글 작성 및 수정 데이터 전송
     async function submitPost() {
         const title = document.getElementById('title').value;
         const content = document.getElementById('content').value;
@@ -178,22 +183,28 @@
         }
     }
 
-    // 수정 화면 열기
     function openEditForm(id, title, content) {
+        if (!id || id === 'undefined') {
+            alert("이전 테스트 게시물은 웹에서 수정할 수 없습니다. 시트에서 직접 지워주세요.");
+            return;
+        }
         currentMode = 'edit';
         currentEditId = id;
-        
         document.getElementById('title').value = title;
         document.getElementById('content').value = content;
         document.getElementById('password').value = '';
-        
         document.getElementById('form-title').innerText = "글 수정하기";
         document.getElementById('submit-btn').innerText = "수정하기";
         toggleScreen('write');
     }
 
-    // 삭제 기능
     async function deletePost(id) {
+        // ID가 아예 없는 유령 게시글 방어 
+        if (!id || id === 'undefined') {
+            alert("오래된 테스트 게시물은 고유 번호가 없어 웹에서 삭제할 수 없습니다. 스프레드시트에서 직접 행을 삭제해주세요.");
+            return;
+        }
+
         const password = prompt("게시글을 삭제하려면 비밀번호를 입력하세요:");
         if (!password) return;
 
