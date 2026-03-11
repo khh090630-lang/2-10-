@@ -59,7 +59,7 @@
 </div>
 
 <script>
-    // ⚠️ 구글 웹 앱 URL을 반드시 넣어주세요!
+    // 본인의 구글 웹 앱 URL
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw38RT0MVkzhkuiCUqrWiilPfwEZdBrh65orlmbn-tJYgJQG71KSGL2uB9GTJC7I1p8QQ/exec";
 
     let currentMode = 'write'; // 'write' 또는 'edit'
@@ -142,9 +142,9 @@
         if (currentMode === 'edit') payload.id = currentEditId;
 
         try {
-            // 이번엔 서버의 성공/실패 응답을 직접 받아서 처리합니다.
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, // 🌟 이 부분이 추가되었습니다!
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
@@ -155,7 +155,7 @@
                 document.getElementById('posts-list').innerHTML = "<div class='loading'>새로고침 중...</div>";
                 loadPosts(); 
             } else {
-                alert("오류: " + result.message); // 비밀번호 틀림 등의 에러 출력
+                alert("오류: " + result.message); 
             }
         } catch (e) {
             alert("서버 통신 중 에러가 발생했습니다.");
@@ -187,6 +187,7 @@
         try {
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, // 🌟 이 부분이 추가되었습니다!
                 body: JSON.stringify({ action: 'delete', id: id, password: password })
             });
             const result = await response.json();
