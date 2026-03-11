@@ -3,44 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2-10 익명 게시판</title>
+    <title>우리반 익명 게시판</title>
     <style>
         :root { --primary-color: #4a90e2; --bg-color: #f4f7f6; --text-color: #333; }
-        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; justify-content: center; color: var(--text-color); }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; justify-content: center; color: var(--text-color); }
         .container { width: 100%; max-width: 600px; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         
         /* 상단 헤더 및 버튼 */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .header h2 { margin: 0; font-size: 20px; }
         .write-btn { padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .write-btn:hover { background: #357abd; }
-
-        /* 게시글 목록 (아코디언 스타일) */
+        
+        /* 게시글 목록 (아코디언) */
         .post-item { border-bottom: 1px solid #eee; }
-        .post-title-box { padding: 15px 5px; cursor: pointer; display: flex; flex-direction: column; transition: background 0.2s; }
+        .post-title-box { padding: 15px 5px; cursor: pointer; display: flex; flex-direction: column; }
         .post-title-box:hover { background: #fafafa; }
         .post-title { font-weight: 600; font-size: 16px; margin-bottom: 5px; }
         .post-date { font-size: 12px; color: #999; }
         
-        /* 게시글 내용 (처음엔 숨김) */
-        .post-content-box { display: none; padding: 15px; background: #f9f9f9; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; color: #444; }
+        /* 게시글 내용 */
+        .post-content-box { display: none; padding: 15px; background: #f9f9f9; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
 
-        /* 글 작성 화면 (처음엔 숨김) */
+        /* 글 작성 화면 */
         #write-view { display: none; }
-        input, textarea { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.2s; }
-        input:focus, textarea:focus { border-color: var(--primary-color); }
-        
+        input, textarea { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; outline: none; }
         .button-group { display: flex; gap: 10px; }
         .submit-btn { flex: 2; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         .cancel-btn { flex: 1; padding: 15px; background: #e0e0e0; color: #555; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-
         .loading { text-align: center; padding: 30px; color: #888; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
     <div id="list-view">
         <div class="header">
             <h2>🏫 학급 익명 게시판</h2>
@@ -55,22 +50,20 @@
         <div class="header">
             <h2>새 글 작성하기</h2>
         </div>
-        <input type="text" id="title" placeholder="제목을 입력하세요 (예: 다음 주 체육대회 건의사항)">
-        <textarea id="content" rows="6" placeholder="자유롭게 의견을 남겨주세요. (욕설 및 비방은 삼가주세요)"></textarea>
-        
+        <input type="text" id="title" placeholder="제목을 입력하세요">
+        <textarea id="content" rows="6" placeholder="내용을 입력하세요"></textarea>
         <div class="button-group">
             <button class="cancel-btn" onclick="toggleScreen('list')">취소</button>
             <button class="submit-btn" onclick="savePost()" id="submit-btn">게시하기</button>
         </div>
     </div>
-
 </div>
 
 <script>
-    // ⚠️ 구글 Apps Script 주소를 반드시 넣어주세요!
+    // ⚠️ 아래 주소를 구글 앱스 스크립트의 새 웹 앱 URL로 반드시 교체하세요!
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw38RT0MVkzhkuiCUqrWiilPfwEZdBrh65orlmbn-tJYgJQG71KSGL2uB9GTJC7I1p8QQ/exec";
 
-    // 화면 전환 함수 (목록창 <-> 작성창)
+    // 화면 전환 함수
     function toggleScreen(screen) {
         if (screen === 'write') {
             document.getElementById('list-view').style.display = 'none';
@@ -78,50 +71,45 @@
         } else {
             document.getElementById('list-view').style.display = 'block';
             document.getElementById('write-view').style.display = 'none';
-            // 작성창 초기화
             document.getElementById('title').value = '';
             document.getElementById('content').value = '';
         }
     }
 
-    // 글 제목 클릭 시 내용 보이기/숨기기 (아코디언 기능)
+    // 아코디언 기능 함수
     function toggleContent(element) {
         const contentBox = element.nextElementSibling;
-        if (contentBox.style.display === "block") {
-            contentBox.style.display = "none";
-        } else {
-            contentBox.style.display = "block";
-        }
+        contentBox.style.display = (contentBox.style.display === "block") ? "none" : "block";
     }
 
-    // 서버에서 글 불러오기
+    // 글 불러오기 (GET)
     async function loadPosts() {
         const list = document.getElementById('posts-list');
         try {
             const response = await fetch(SCRIPT_URL);
             const data = await response.json();
             
-            if (data.length === 0) {
-                list.innerHTML = "<div class='loading'>아직 등록된 글이 없습니다. 첫 번째 글을 남겨보세요!</div>";
+            if (!data || data.length === 0) {
+                list.innerHTML = "<div class='loading'>아직 등록된 글이 없습니다.</div>";
                 return;
             }
 
-            // 최신글이 위로 오도록 역순으로 화면에 그리기
+            // 역순(최신글 먼저)으로 출력
             list.innerHTML = data.reverse().map(post => `
                 <div class="post-item">
                     <div class="post-title-box" onclick="toggleContent(this)">
-                        <div class="post-title">${post[1]}</div>
+                        <div class="post-title">${post[1] || '제목 없음'}</div>
                         <div class="post-date">${new Date(post[0]).toLocaleString('ko-KR')}</div>
                     </div>
-                    <div class="post-content-box">${post[2]}</div>
+                    <div class="post-content-box">${post[2] || '내용 없음'}</div>
                 </div>
             `).join('');
         } catch (e) {
-            list.innerHTML = "<div class='loading'>데이터를 불러오는 데 실패했습니다.</div>";
+            list.innerHTML = `<div class='loading'>데이터를 불러올 수 없습니다. (${e.message})</div>`;
         }
     }
 
-    // 서버로 글 저장하기
+    // 글 저장하기 (POST)
     async function savePost() {
         const title = document.getElementById('title').value;
         const content = document.getElementById('content').value;
@@ -136,27 +124,27 @@
         btn.disabled = true;
 
         try {
+            // CORS 오류를 방지하기 위해 body를 문자열로만 전송
             await fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ title, content })
+                body: JSON.stringify({ title: title, content: content })
             });
             
             alert("글이 성공적으로 등록되었습니다!");
-            toggleScreen('list'); // 목록 화면으로 돌아가기
+            toggleScreen('list');
             
-            // 등록 후 목록 다시 불러오기 (로딩 표시)
             document.getElementById('posts-list').innerHTML = "<div class='loading'>새로고침 중...</div>";
             loadPosts(); 
             
         } catch (e) {
-            alert("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            alert("연결 오류가 발생했습니다. 주소가 정확한지 확인해주세요.\n상세: " + e.message);
         } finally {
             btn.innerText = "게시하기";
             btn.disabled = false;
         }
     }
 
-    // 사이트 접속 시 자동으로 글 목록 불러오기
+    // 시작 시 목록 불러오기
     window.onload = loadPosts;
 </script>
 
