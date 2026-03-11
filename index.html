@@ -20,7 +20,6 @@
         
         .post-content-box { display: none; padding: 15px; background: #f9f9f9; border-radius: 8px; margin-bottom: 15px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
         
-        /* 수정 삭제 버튼 스타일 */
         .action-buttons { margin-top: 15px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed #ccc; padding-top: 10px; }
         .btn-small { padding: 6px 12px; font-size: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .btn-edit { background-color: #f0ad4e; color: white; }
@@ -59,6 +58,7 @@
 </div>
 
 <script>
+    // ⚠️ 구글 웹 앱 URL 반드시 확인!
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw38RT0MVkzhkuiCUqrWiilPfwEZdBrh65orlmbn-tJYgJQG71KSGL2uB9GTJC7I1p8QQ/exec";
 
     let currentMode = 'write'; 
@@ -90,7 +90,6 @@
         contentBox.style.display = (contentBox.style.display === "block") ? "none" : "block";
     }
 
-    // 🌟 어떤 형태의 데이터가 들어와도 완벽하게 처리하는 마법의 함수
     async function loadPosts() {
         const list = document.getElementById('posts-list');
         try {
@@ -103,20 +102,12 @@
             }
 
             list.innerHTML = data.reverse().map(post => {
-                // 서버가 객체로 주든, 배열로 주든 무조건 찾아냅니다.
-                const rawId = post.id || post[0];
+                const rawId = post.id || post[0]; 
                 const safeTitle = String(post.title || post[1] || '제목 없음');
                 const safeContent = String(post.content || post[2] || '내용 없음');
 
-                // 1970년 에러를 막는 핵심 날짜 변환기
-                let displayDate = "";
-                if (!rawId) {
-                    displayDate = "날짜 표기 불가 (고유ID 없음)";
-                } else if (isNaN(Number(rawId))) {
-                    displayDate = new Date(rawId).toLocaleString('ko-KR'); // 시트에 적힌 글자 그대로의 날짜일 경우
-                } else {
-                    displayDate = new Date(Number(rawId)).toLocaleString('ko-KR'); // 정상적인 고유 숫자일 경우
-                }
+                // 🌟 핵심: 서버가 준 예쁜 날짜 글자를 그대로 화면에 표시합니다.
+                const displayDate = rawId;
 
                 const escapedTitle = safeTitle.replace(/'/g, "\\'");
                 const escapedContent = safeContent.replace(/'/g, "\\'").replace(/\n/g, "\\n");
@@ -184,10 +175,6 @@
     }
 
     function openEditForm(id, title, content) {
-        if (!id || id === 'undefined') {
-            alert("이전 테스트 게시물은 웹에서 수정할 수 없습니다. 시트에서 직접 지워주세요.");
-            return;
-        }
         currentMode = 'edit';
         currentEditId = id;
         document.getElementById('title').value = title;
@@ -199,12 +186,6 @@
     }
 
     async function deletePost(id) {
-        // ID가 아예 없는 유령 게시글 방어 
-        if (!id || id === 'undefined') {
-            alert("오래된 테스트 게시물은 고유 번호가 없어 웹에서 삭제할 수 없습니다. 스프레드시트에서 직접 행을 삭제해주세요.");
-            return;
-        }
-
         const password = prompt("게시글을 삭제하려면 비밀번호를 입력하세요:");
         if (!password) return;
 
