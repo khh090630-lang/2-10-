@@ -5,153 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2-10 익명 게시판</title>
     <style>
-        /* 🌟 사진 기반의 트렌디 다크 네이비 컬러 팔레트 */
         :root { 
-            --bg-color: #101726; /* 아주 깊은 네이비 배경 */
-            --card-bg: #1e293b; /* 게시글 카드 배경 */
-            --card-hover: #2a3a54; /* 마우스 올렸을 때 살짝 밝아지는 네이비 */
-            --primary-color: #ff5e78; /* 글쓰기 버튼 코랄 핑크 */
-            --text-color: #f8fafc; /* 흰색에 가까운 밝은 텍스트 */
-            --text-muted: #94a3b8; /* 날짜 등 보조 텍스트 (회색) */
+            --bg-color: #101726; 
+            --card-bg: #1e293b; 
+            --card-hover: #2a3a54; 
+            --primary-color: #ff5e78; 
+            --text-color: #f8fafc; 
+            --text-muted: #94a3b8; 
         }
         
-        body { 
-            font-family: 'Pretendard', -apple-system, sans-serif; 
-            background-color: var(--bg-color); 
-            margin: 0; padding: 20px; display: flex; justify-content: center; color: var(--text-color); 
-        }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; justify-content: center; color: var(--text-color); }
+        .container { width: 100%; max-width: 680px; background: transparent; padding: 20px 0; position: relative; }
         
-        /* 기존의 하얀색 뒷배경 패널을 없애고 배경에 바로 카드가 떠다니는 느낌으로 변경 */
-        .container { 
-            width: 100%; max-width: 680px; 
-            background: transparent; 
-            padding: 20px 0; position: relative; 
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h2 { margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px; }
         
-        .header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 30px; 
-        }
-        .header h2 { 
-            margin: 0; font-size: 22px; font-weight: 700;
-            color: #ffffff;
-        }
+        .admin-trigger { font-size: 14px; opacity: 0.15; cursor: pointer; transition: opacity 0.3s; }
+        .admin-trigger:hover { opacity: 0.8; }
+        .admin-badge { display: none; font-size: 11px; background: #3b82f6; padding: 3px 8px; border-radius: 10px; font-weight: bold; }
         
-        /* 코랄 핑크 메인 버튼 스타일 */
-        .write-btn, .submit-btn { 
-            padding: 10px 24px; 
-            background: var(--primary-color); 
-            color: #fff; 
-            border: none; 
-            border-radius: 20px; font-weight: 700; font-size: 15px; cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        .write-btn:hover, .submit-btn:hover { 
-            background: #ff3b5c; 
-            transform: translateY(-2px); /* 부드럽게 떠오르는 효과 */
-            box-shadow: 0 6px 16px rgba(255, 94, 120, 0.4); 
-        }
+        .btn-group-top { display: flex; gap: 8px; }
+        .write-btn { padding: 10px 18px; background: var(--card-bg); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+        .write-btn.primary { background: var(--primary-color); border: none; }
+        .write-btn:hover { background: #ff3b5c; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255, 94, 120, 0.4); }
         
-        /* 게시물 목록 스타일 (사진과 동일하게 구현) */
-        .post-item { border: none; margin-bottom: 16px; }
-        .post-title-box { 
-            background: var(--card-bg); 
-            padding: 24px; 
-            cursor: pointer; display: flex; flex-direction: column; 
-            border-radius: 16px; 
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            transition: all 0.3s ease; 
-        }
-        /* 🌟 게시글 호버 (마우스 올림) 애니메이션 */
-        .post-title-box:hover { 
-            background: var(--card-hover); 
-            transform: translateY(-4px); /* 위로 살짝 떠오름 */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* 그림자 생성 */
-        }
+        .notice-banner { background: rgba(255, 94, 120, 0.1); border: 1px solid rgba(255, 94, 120, 0.2); border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+        .notice-banner:hover { background: rgba(255, 94, 120, 0.15); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 94, 120, 0.2); }
+        .notice-banner .icon { font-size: 18px; }
+        .notice-banner .text { flex: 1; font-weight: bold; color: #ff8fa3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
         
-        .post-title { font-weight: 700; font-size: 18px; margin-bottom: 8px; color: #fff; }
-        .post-date { font-size: 14px; color: var(--text-muted); }
+        /* 🌟 게시글 목록 (클릭 시 상세로 이동) */
+        .post-item { border: none; margin-bottom: 12px; }
+        .post-title-box { background: var(--card-bg); padding: 22px 24px; cursor: pointer; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; }
+        .post-title-box:hover { background: var(--card-hover); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25); }
         
-        /* 게시물 펼친 내용 */
-        .post-content-box { 
-            display: none; padding: 24px; 
-            background: #172132; /* 카드보다 살짝 어두운 색으로 깊이감 */
-            border-radius: 12px; margin-top: 8px; margin-bottom: 24px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; 
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-        
-        .action-buttons { margin-top: 15px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-bottom: 15px; }
-        
-        /* 보조 버튼들 (수정, 삭제 등) */
-        .btn-small { padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.05); color: #cbd5e1; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .btn-small:hover { background: rgba(255,255,255,0.15); color: #fff; transform: translateY(-2px); }
-        
-        /* 새 댓글 달기 버튼 */
-        .comments-section > button {
-            background: rgba(255, 255, 255, 0.05) !important; color: #fff !important; width: 100%; border: none !important; transition: all 0.3s !important; padding: 12px !important; border-radius: 8px !important; margin-top: 10px; font-weight: bold;
-        }
-        .comments-section > button:hover {
-            background: rgba(255, 255, 255, 0.1) !important; transform: translateY(-2px);
-        }
+        .badge-notice { background: var(--primary-color); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-right: 8px; font-weight: 800; vertical-align: middle; display: inline-block; margin-bottom: 2px; }
+        .post-title { font-weight: 700; font-size: 17px; margin-bottom: 8px; color: #fff; line-height: 1.4; }
+        .post-date { font-size: 13px; color: var(--text-muted); }
 
-        /* 댓글 영역 스타일 */
-        .comments-section { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
-        .comment-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 14px; }
-        .comment-reply { 
-            margin-left: 20px; 
-            border-left: 2px solid #475569; 
-            padding-left: 15px; 
-            background-color: rgba(0,0,0,0.15); 
-            border-radius: 0 8px 8px 0; 
-        }
-        .comment-date { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-        .comment-content { margin-bottom: 10px; color: #cbd5e1; }
-        .comment-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        /* 🌟 단독 상세 보기 전용 스타일 */
+        .detail-wrapper { background: var(--card-bg); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05); overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+        .detail-header-box { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1); }
+        .detail-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.4; }
+        .detail-content-box { padding: 24px; font-size: 16px; line-height: 1.7; white-space: pre-wrap; color: #e2e8f0; min-height: 150px; }
         
-        /* 로딩 오버레이 */
-        #global-loader { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(16, 23, 38, 0.85); backdrop-filter: blur(4px); z-index: 9999; flex-direction: column; 
-            justify-content: center; align-items: center; color: var(--text-color); font-weight: bold; 
-        }
-        .spinner { 
-            border: 3px solid rgba(255, 94, 120, 0.2); border-top: 3px solid var(--primary-color); 
-            border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 20px; 
-        }
+        .action-buttons { padding: 0 24px 20px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+        .btn-small { padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.05); color: #cbd5e1; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .btn-small:hover { background: rgba(255,255,255,0.15); color: #fff; transform: translateY(-2px); }
+        .btn-admin-pin { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .btn-admin-pin:hover { background: #3b82f6; color: #fff; }
+
+        /* 컴팩트 댓글 스타일 */
+        .comments-section { border-top: 10px solid rgba(0,0,0,0.2); padding: 20px 24px 24px; background: rgba(0,0,0,0.05); }
+        .comments-count-title { font-weight: 700; font-size: 15px; margin-bottom: 15px; color: #94a3b8; }
+        .comment-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 6px; }
+        .comment-item:last-child { border-bottom: none; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; }
+        .comment-date { font-size: 13px; color: #64748b; font-weight: bold; }
+        .comment-content { font-size: 15px; color: #cbd5e1; line-height: 1.5; margin: 0; white-space: pre-wrap; }
+        
+        .comment-actions { display: flex; gap: 12px; }
+        .btn-comment-action { background: none; border: none; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; transition: color 0.2s; }
+        .btn-comment-action:hover { color: var(--primary-color); }
+        .btn-comment-action.delete:hover { color: #ef4444; }
+
+        .comment-reply { margin-left: 20px; padding-left: 15px; position: relative; border: none; background: transparent; }
+        .comment-reply::before { content: ''; position: absolute; top: -10px; left: 0; width: 12px; height: 22px; border-left: 2px solid #334155; border-bottom: 2px solid #334155; border-bottom-left-radius: 6px; }
+
+        .btn-new-comment { background: rgba(255, 255, 255, 0.05); color: #fff; width: 100%; border: 1px dashed rgba(255,255,255,0.1); transition: all 0.3s; padding: 14px; border-radius: 12px; margin-top: 15px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-new-comment:hover { background: rgba(255, 255, 255, 0.1); color: #fff; transform: translateY(-2px); }
+
+        /* 로딩 */
+        #global-loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 23, 38, 0.85); backdrop-filter: blur(4px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: var(--text-color); font-weight: bold; }
+        .spinner { border: 3px solid rgba(255, 94, 120, 0.2); border-top: 3px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 작성 폼 및 모달 패널 배경 분리 */
-        #write-view, #comment-modal { 
-            background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 999; }
-        #comment-modal { 
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            width: 90%; max-width: 400px; z-index: 1000; 
-        }
-        #write-view h2, #comment-modal h3 { margin-top: 0; margin-bottom: 20px; color: #fff; font-size: 18px; }
+        /* 화면 전환 처리 */
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        #write-view { display: none; }
+        /* 공통 뒤로가기 헤더 */
+        .sub-header { display: inline-flex; align-items: center; margin-bottom: 20px; gap: 8px; cursor: pointer; color: #94a3b8; font-size: 16px; font-weight: bold; transition: color 0.2s; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.03); }
+        .sub-header:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+        .card-panel { background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); }
+        #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 999; }
+        #comment-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; z-index: 1000; }
         
-        /* 입력창 스타일 */
-        input, textarea { 
-            width: 100%; padding: 14px; margin-bottom: 15px; 
-            background: #0f1623; color: #fff;
-            border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; font-size: 15px; box-sizing: border-box; outline: none; 
-            transition: all 0.3s ease;
-        }
-        input:focus, textarea:focus {
-            border-color: var(--primary-color);
-            background: #141d2d;
-        }
-        input::placeholder, textarea::placeholder { color: #475569; }
+        input, textarea { width: 100%; padding: 14px; margin-bottom: 15px; background: #0f1623; color: #fff; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; font-size: 15px; box-sizing: border-box; outline: none; transition: all 0.3s ease; }
+        input:focus, textarea:focus { border-color: var(--primary-color); background: #141d2d; }
         
         .button-group { display: flex; gap: 10px; margin-top: 5px; }
-        .cancel-btn { flex: 1; padding: 12px; background: #334155; color: #cbd5e1; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .cancel-btn { flex: 1; padding: 12px; background: #334155; color: #cbd5e1; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .cancel-btn:hover { background: #475569; color: #fff; }
-        .submit-btn { border-radius: 12px; }
+        .submit-btn { flex: 2; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -162,30 +110,55 @@
 </div>
 
 <div class="container">
-    <div id="list-view">
+    <div id="list-view" class="view-section active">
         <div class="header">
-            <h2>🤫 2-10 익명 게시판</h2>
-            <button class="write-btn" onclick="openWriteForm()">글쓰기</button>
+            <h2>🤫 2-10 익명 게시판 
+                <span class="admin-trigger" onclick="loginAdmin()">🗝️</span>
+                <span id="admin-badge" class="admin-badge">어드민</span>
+            </h2>
+            <div class="btn-group-top">
+                <button id="admin-write-btn" class="write-btn" style="display:none;" onclick="openWriteForm(true)">📢 공지쓰기</button>
+                <button class="write-btn primary" onclick="openWriteForm(false)">✍️ 글쓰기</button>
+            </div>
         </div>
+        
+        <div id="notice-banner-container"></div>
+        
         <div id="posts-list"><div style="text-align: center; padding: 30px; color: #475569;">게시판을 불러오는 중...</div></div>
     </div>
 
-    <div id="write-view">
-        <h2 id="form-title">새 글 작성하기</h2>
+    <div id="detail-view" class="view-section">
+        <div class="sub-header" onclick="goBackToList()">
+            <span>← 목록으로 돌아가기</span>
+        </div>
+        <div id="detail-container">
+            </div>
+    </div>
+
+    <div id="notice-view" class="view-section">
+        <div class="sub-header" onclick="goBackToList()">
+            <span>← 뒤로 가기</span>
+            <span style="color:#ff8fa3; margin-left:5px;">📢 공지사항 모아보기</span>
+        </div>
+        <div id="notice-list"></div>
+    </div>
+
+    <div id="write-view" class="view-section card-panel">
+        <h2 id="form-title" style="margin-top:0; color:#fff;">새 글 작성하기</h2>
         <input type="text" id="title" placeholder="제목을 입력하세요">
         <textarea id="content" rows="6" placeholder="내용을 입력하세요"></textarea>
         <input type="password" id="password" placeholder="비밀번호 4자리 (수정/삭제 시 필요)">
         
         <div class="button-group">
-            <button class="cancel-btn" onclick="toggleScreen('list')">취소</button>
+            <button class="cancel-btn" onclick="goBackToList()">취소</button>
             <button class="submit-btn" onclick="submitPost()">게시하기</button>
         </div>
     </div>
 </div>
 
 <div id="modal-overlay" onclick="closeCommentModal()"></div>
-<div id="comment-modal">
-    <h3 id="c-modal-title">댓글 작성</h3>
+<div id="comment-modal" class="card-panel">
+    <h3 id="c-modal-title" style="margin-top:0; color:#fff;">댓글 작성</h3>
     <textarea id="c-modal-content" rows="3" placeholder="내용을 입력하세요"></textarea>
     <input type="password" id="c-modal-pw" placeholder="비밀번호 (수정/삭제 시 필요)">
     <div class="button-group">
@@ -195,119 +168,198 @@
 </div>
 
 <script>
+    // ⚠️ 구글 웹 앱 URL 반드시 확인!
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw38RT0MVkzhkuiCUqrWiilPfwEZdBrh65orlmbn-tJYgJQG71KSGL2uB9GTJC7I1p8QQ/exec";
+
+    let isAdmin = false;
+    const ADMIN_PW = "0210"; 
 
     let currentMode = 'write'; 
     let currentEditId = null;
-    let openPostIds = new Set();
+    let isWritingNotice = false; 
+    let currentViewPostId = null; // 현재 상세 보기 중인 글 ID
+    let globalData = { posts: [], comments: [] };
+
+    function loginAdmin() {
+        if (isAdmin) { alert("이미 관리자 권한이 켜져 있습니다."); return; }
+        const pw = prompt("🛠️ 관리자(어드민) 마스터 비밀번호:");
+        if (pw === ADMIN_PW) {
+            isAdmin = true;
+            document.getElementById('admin-badge').style.display = 'inline-block';
+            document.getElementById('admin-write-btn').style.display = 'inline-block';
+            alert("관리자 인증 완료! 공지 등록 및 강제 삭제가 가능합니다.");
+            renderAll(); 
+        } else if (pw !== null) alert("비밀번호가 틀렸습니다.");
+    }
 
     function showLoader() { document.getElementById('global-loader').style.display = 'flex'; }
     function hideLoader() { document.getElementById('global-loader').style.display = 'none'; }
 
     function toggleScreen(screen) {
-        if (screen === 'write') {
-            document.getElementById('list-view').style.display = 'none';
-            document.getElementById('write-view').style.display = 'block';
-        } else {
-            document.getElementById('list-view').style.display = 'block';
-            document.getElementById('write-view').style.display = 'none';
-            document.getElementById('title').value = '';
-            document.getElementById('content').value = '';
-            document.getElementById('password').value = '';
-        }
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(screen + '-view').classList.add('active');
+        window.scrollTo(0, 0); // 화면 전환 시 맨 위로 스크롤
     }
 
-    function openWriteForm() {
-        currentMode = 'write';
-        currentEditId = null;
-        document.getElementById('form-title').innerText = "새 글 작성하기";
+    function goBackToList() {
+        currentViewPostId = null;
+        toggleScreen('list');
+    }
+
+    function openWriteForm(asNotice = false) {
+        currentMode = 'write'; currentEditId = null; isWritingNotice = asNotice;
+        document.getElementById('form-title').innerText = asNotice ? "📢 새 공지사항 작성" : "✍️ 새 글 작성하기";
+        document.getElementById('title').value = '';
+        document.getElementById('content').value = '';
+        document.getElementById('password').value = (asNotice && isAdmin) ? ADMIN_PW : '';
         toggleScreen('write');
     }
 
-    function toggleContent(element, postId) {
-        const contentBox = element.nextElementSibling;
-        if (contentBox.style.display === "block") {
-            contentBox.style.display = "none";
-            openPostIds.delete(postId); 
-        } else {
-            contentBox.style.display = "block";
-            openPostIds.add(postId);    
-        }
-    }
-
     async function loadPosts() {
-        const list = document.getElementById('posts-list');
+        const cachedData = sessionStorage.getItem('boardData_v7');
+        if (cachedData) {
+            globalData = JSON.parse(cachedData);
+            renderAll();
+        }
         try {
             const response = await fetch(SCRIPT_URL);
             const data = await response.json();
-            
-            if (!data.posts || data.posts.length === 0) {
-                list.innerHTML = "<div style='text-align: center; padding: 40px; color: #475569;'>아직 등록된 글이 없습니다. 첫 글의 주인공이 되어보세요!</div>";
-                return;
+            if (JSON.stringify(data) !== cachedData) {
+                sessionStorage.setItem('boardData_v7', JSON.stringify(data));
+                globalData = data;
+                renderAll();
             }
-
-            list.innerHTML = data.posts.reverse().map(post => {
-                const safeTitle = String(post.title).replace(/'/g, "\\'");
-                const safeContent = String(post.content).replace(/'/g, "\\'").replace(/\n/g, "\\n");
-
-                const postComments = data.comments.filter(c => c.postId === post.id);
-                const topLevelComments = postComments.filter(c => !c.parentId); 
-                
-                let commentsHTML = `<div class="comments-section">`;
-
-                topLevelComments.forEach(c => {
-                    const escContent = String(c.content).replace(/'/g, "\\'").replace(/\n/g, "\\n");
-                    commentsHTML += `
-                    <div class="comment-item">
-                        <div class="comment-date">${c.commentId}</div>
-                        <div class="comment-content">${c.content}</div>
-                        <div class="comment-actions">
-                            <button class="btn-small btn-reply" onclick="openCommentModal('write_reply', '${post.id}', '${c.commentId}')">답글</button>
-                            <button class="btn-small btn-edit" onclick="openCommentModal('edit', null, '${c.commentId}', '${escContent}')">수정</button>
-                            <button class="btn-small btn-delete" onclick="deleteComment('${c.commentId}')">삭제</button>
-                        </div>
-                    </div>`;
-
-                    const replies = postComments.filter(reply => reply.parentId === c.commentId);
-                    replies.forEach(r => {
-                        const escReply = String(r.content).replace(/'/g, "\\'").replace(/\n/g, "\\n");
-                        commentsHTML += `
-                        <div class="comment-item comment-reply">
-                            <div class="comment-date">↳ ${r.commentId}</div>
-                            <div class="comment-content">${r.content}</div>
-                            <div class="comment-actions">
-                                <button class="btn-small btn-edit" onclick="openCommentModal('edit', null, '${r.commentId}', '${escReply}')">수정</button>
-                                <button class="btn-small btn-delete" onclick="deleteComment('${r.commentId}')">삭제</button>
-                            </div>
-                        </div>`;
-                    });
-                });
-
-                commentsHTML += `
-                    <button onclick="openCommentModal('write', '${post.id}')">+ 새 댓글 달기</button>
-                </div>`;
-
-                const isOpen = openPostIds.has(post.id) ? "display: block;" : "display: none;";
-
-                return `
-                <div class="post-item">
-                    <div class="post-title-box" onclick="toggleContent(this, '${post.id}')">
-                        <div class="post-title">${post.title}</div>
-                        <div class="post-date">${post.id} · 댓글 ${postComments.length}</div>
-                    </div>
-                    <div class="post-content-box" style="${isOpen}">
-                        <div>${post.content}</div>
-                        <div class="action-buttons">
-                            <button class="btn-small btn-edit" onclick="openEditForm('${post.id}', '${safeTitle}', '${safeContent}')">글 수정</button>
-                            <button class="btn-small btn-delete" onclick="deletePost('${post.id}')">글 삭제</button>
-                        </div>
-                        ${commentsHTML}
-                    </div>
-                </div>`;
-            }).join('');
         } catch (e) {
-            list.innerHTML = `<div style='text-align: center; padding: 30px; color: #ef4444;'>데이터를 불러올 수 없습니다.</div>`;
+            if (!cachedData) document.getElementById('posts-list').innerHTML = `<div style='text-align:center; padding:30px; color:#ef4444;'>데이터를 불러올 수 없습니다.</div>`;
         }
+    }
+
+    function renderAll() {
+        if (!globalData.posts) return;
+        const noticePosts = globalData.posts.filter(p => p.isPinned).reverse();
+        const normalPosts = globalData.posts.filter(p => !p.isPinned).reverse();
+
+        // 1. 배너 렌더링
+        const bannerContainer = document.getElementById('notice-banner-container');
+        if (noticePosts.length > 0) {
+            bannerContainer.innerHTML = `
+                <div class="notice-banner" onclick="toggleScreen('notice')">
+                    <span class="icon">📢</span>
+                    <span class="text">${noticePosts[0].title}</span>
+                    <span class="arrow">전체보기 ></span>
+                </div>`;
+        } else bannerContainer.innerHTML = '';
+
+        // 2. 메인 리스트 렌더링 (아코디언 내용 빼고 제목 박스만)
+        const listDiv = document.getElementById('posts-list');
+        if (normalPosts.length === 0) {
+            listDiv.innerHTML = "<div style='text-align:center; padding:40px; color:#475569;'>아직 등록된 글이 없습니다.</div>";
+        } else {
+            listDiv.innerHTML = normalPosts.map(post => createListHTML(post, false)).join('');
+        }
+
+        // 3. 공지 모아보기 렌더링
+        const noticeDiv = document.getElementById('notice-list');
+        if (noticePosts.length === 0) noticeDiv.innerHTML = "<div style='text-align:center; padding:40px; color:#475569;'>등록된 공지사항이 없습니다.</div>";
+        else noticeDiv.innerHTML = noticePosts.map(post => createListHTML(post, true)).join('');
+
+        // 🌟 4. 만약 현재 상세 보기를 켜둔 상태라면, 데이터를 최신화하여 다시 그림
+        if (currentViewPostId) {
+            const exists = globalData.posts.find(p => p.id === currentViewPostId);
+            if (exists) openDetail(currentViewPostId); // 갱신
+            else goBackToList(); // 방금 그 글이 삭제되었다면 목록으로 튕겨냄
+        }
+    }
+
+    // 🌟 얕은 리스트 박스 HTML (내용은 없음)
+    function createListHTML(post, isNotice) {
+        const commentCount = globalData.comments.filter(c => c.postId === post.id).length;
+        const noticeBadge = isNotice ? `<span class="badge-notice">📢 공지</span>` : '';
+        return `
+        <div class="post-item">
+            <div class="post-title-box" onclick="openDetail('${post.id}')">
+                <div class="post-title">${noticeBadge}${post.title}</div>
+                <div class="post-date">${post.id} · 댓글 ${commentCount}</div>
+            </div>
+        </div>`;
+    }
+
+    // 🌟 글 클릭 시 단독 뷰로 넘어가는 핵심 함수!
+    function openDetail(id) {
+        const post = globalData.posts.find(p => p.id === id);
+        if(!post) return;
+        currentViewPostId = id; // 현재 보고 있는 글 ID 기록
+
+        const safeTitle = String(post.title).replace(/'/g, "\\'");
+        const safeContent = String(post.content).replace(/'/g, "\\'").replace(/\n/g, "\\n");
+        const isNotice = post.isPinned;
+        const noticeBadge = isNotice ? `<span class="badge-notice">📢 공지</span>` : '';
+
+        // 댓글 렌더링 준비
+        const postComments = globalData.comments.filter(c => c.postId === id);
+        const topLevelComments = postComments.filter(c => !c.parentId); 
+        
+        let commentsHTML = `<div class="comments-section">
+            <div class="comments-count-title">💬 댓글 ${postComments.length}개</div>`;
+            
+        topLevelComments.forEach(c => {
+            const escContent = String(c.content).replace(/'/g, "\\'").replace(/\n/g, "\\n");
+            commentsHTML += `
+            <div class="comment-item">
+                <div class="comment-header">
+                    <span class="comment-date">익명 · ${c.commentId}</span>
+                    <div class="comment-actions">
+                        <button class="btn-comment-action" onclick="openCommentModal('write_reply', '${post.id}', '${c.commentId}')">답글</button>
+                        <button class="btn-comment-action" onclick="openCommentModal('edit', null, '${c.commentId}', '${escContent}')">수정</button>
+                        <button class="btn-comment-action delete" onclick="deleteComment('${c.commentId}')">삭제</button>
+                    </div>
+                </div>
+                <div class="comment-content">${c.content}</div>
+            </div>`;
+            
+            const replies = postComments.filter(reply => reply.parentId === c.commentId);
+            replies.forEach(r => {
+                const escReply = String(r.content).replace(/'/g, "\\'").replace(/\n/g, "\\n");
+                commentsHTML += `
+                <div class="comment-item comment-reply">
+                    <div class="comment-header">
+                        <span class="comment-date">익명 · ${r.commentId}</span>
+                        <div class="comment-actions">
+                            <button class="btn-comment-action" onclick="openCommentModal('edit', null, '${r.commentId}', '${escReply}')">수정</button>
+                            <button class="btn-comment-action delete" onclick="deleteComment('${r.commentId}')">삭제</button>
+                        </div>
+                    </div>
+                    <div class="comment-content">${r.content}</div>
+                </div>`;
+            });
+        });
+        commentsHTML += `<button class="btn-new-comment" onclick="openCommentModal('write', '${post.id}')">💬 새 댓글 작성하기</button></div>`;
+
+        let adminPinBtn = '';
+        if (isAdmin) {
+            if (isNotice) adminPinBtn = `<button class="btn-small btn-admin-pin" onclick="togglePinState('${post.id}', false)">↓ 일반 글로 내리기</button>`;
+            else adminPinBtn = `<button class="btn-small btn-admin-pin" onclick="togglePinState('${post.id}', true)">↑ 공지로 올리기</button>`;
+        }
+
+        // 🌟 단독 상세 보기 전체 레이아웃 조립
+        const detailHtml = `
+            <div class="detail-wrapper">
+                <div class="detail-header-box">
+                    <div class="detail-title">${noticeBadge}${post.title}</div>
+                    <div class="post-date">${post.id} · 익명</div>
+                </div>
+                <div class="detail-content-box">${post.content}</div>
+                <div class="action-buttons">
+                    ${adminPinBtn}
+                    <button class="btn-small btn-edit" onclick="openEditForm('${post.id}', '${safeTitle}', '${safeContent}', ${isNotice})">글 수정</button>
+                    <button class="btn-small btn-delete" onclick="deletePost('${post.id}')">글 삭제</button>
+                </div>
+                ${commentsHTML}
+            </div>
+        `;
+        
+        document.getElementById('detail-container').innerHTML = detailHtml;
+        toggleScreen('detail');
     }
 
     async function submitPost() {
@@ -318,110 +370,99 @@
         if (!title.trim() || !content.trim() || !password.trim()) { alert("모두 입력해주세요!"); return; }
 
         showLoader(); 
-        const payload = { action: currentMode, title, content, password, id: currentEditId };
+        const payload = { action: currentMode, title, content, password, isPinned: isWritingNotice, id: currentEditId };
 
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await res.json();
             if (result.result === 'success') {
                 alert("완료되었습니다!");
-                toggleScreen('list');
+                goBackToList();
                 await loadPosts(); 
             } else alert("오류: " + result.message); 
         } catch (e) { alert("서버 통신 에러!"); } 
         finally { hideLoader(); } 
     }
 
-    function openEditForm(id, title, content) {
-        currentMode = 'edit'; currentEditId = id;
+    async function togglePinState(id, targetPinState) {
+        if (!isAdmin) return;
+        showLoader();
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'toggle_pin', id: id, password: ADMIN_PW, isPinned: targetPinState }) });
+            const result = await res.json();
+            if (result.result === 'success') { alert("공지 설정이 변경되었습니다."); await loadPosts(); }
+        } catch (e) {} finally { hideLoader(); }
+    }
+
+    function openEditForm(id, title, content, isPinnedPost) {
+        currentMode = 'edit'; currentEditId = id; isWritingNotice = isPinnedPost;
         document.getElementById('title').value = title;
         document.getElementById('content').value = content;
-        document.getElementById('password').value = '';
+        document.getElementById('password').value = isAdmin ? ADMIN_PW : ''; 
         document.getElementById('form-title').innerText = "글 수정하기";
         toggleScreen('write');
     }
 
     async function deletePost(id) {
-        const password = prompt("게시글을 삭제하려면 비밀번호를 입력하세요:");
-        if (!password) return;
+        let password = isAdmin ? ADMIN_PW : prompt("게시글을 삭제하려면 비밀번호를 입력하세요:");
+        if (!isAdmin && !password) return;
+        if (isAdmin && !confirm("관리자 권한으로 강제 삭제하시겠습니까?")) return;
         
         showLoader(); 
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: 'delete', id: id, password: password }) });
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id, password: password }) });
             const result = await res.json();
             if (result.result === 'success') { 
-                alert("게시글과 댓글이 모두 삭제되었습니다."); 
-                openPostIds.delete(id); 
+                alert("삭제되었습니다."); 
+                goBackToList(); 
                 await loadPosts(); 
             } else alert("삭제 실패: " + result.message);
-        } catch (e) { alert("에러 발생!"); }
-        finally { hideLoader(); } 
+        } catch (e) {} finally { hideLoader(); } 
     }
 
-    let modalAction = '';
-    let targetPostId = '';
-    let targetCommentId = '';
+    let modalAction = ''; let targetPostId = ''; let targetCommentId = '';
 
     function openCommentModal(action, postId = null, commentId = null, content = '') {
         modalAction = action; targetPostId = postId; targetCommentId = commentId;
-        
         document.getElementById('c-modal-content').value = content;
-        document.getElementById('c-modal-pw').value = '';
-        
-        const titleEl = document.getElementById('c-modal-title');
-        if(action === 'write') titleEl.innerText = '새 댓글 달기';
-        else if(action === 'write_reply') titleEl.innerText = '답글 달기';
-        else if(action === 'edit') titleEl.innerText = '댓글 수정하기';
-
+        document.getElementById('c-modal-pw').value = isAdmin ? ADMIN_PW : '';
+        document.getElementById('c-modal-title').innerText = action === 'write' ? '새 댓글 달기' : (action === 'write_reply' ? '대댓글 달기' : '댓글 수정하기');
         document.getElementById('modal-overlay').style.display = 'block';
         document.getElementById('comment-modal').style.display = 'block';
         document.getElementById('c-modal-submit').onclick = submitComment;
     }
 
-    function closeCommentModal() {
-        document.getElementById('modal-overlay').style.display = 'none';
-        document.getElementById('comment-modal').style.display = 'none';
-    }
+    function closeCommentModal() { document.getElementById('modal-overlay').style.display = 'none'; document.getElementById('comment-modal').style.display = 'none'; }
 
     async function submitComment() {
         const content = document.getElementById('c-modal-content').value;
         const password = document.getElementById('c-modal-pw').value;
         if(!content.trim() || !password.trim()) { alert("내용과 비밀번호를 입력하세요."); return; }
-
-        let payload = { password: password, content: content };
         
-        if (modalAction === 'write') {
-            payload.action = 'write_comment'; payload.postId = targetPostId;
-        } else if (modalAction === 'write_reply') {
-            payload.action = 'write_comment'; payload.postId = targetPostId; payload.parentId = targetCommentId;
-        } else if (modalAction === 'edit') {
-            payload.action = 'edit_comment'; payload.commentId = targetCommentId;
-        }
-
-        closeCommentModal();
-        showLoader(); 
-
+        let payload = { password: password, content: content };
+        if (modalAction === 'write') { payload.action = 'write_comment'; payload.postId = targetPostId; } 
+        else if (modalAction === 'write_reply') { payload.action = 'write_comment'; payload.postId = targetPostId; payload.parentId = targetCommentId; } 
+        else if (modalAction === 'edit') { payload.action = 'edit_comment'; payload.commentId = targetCommentId; }
+        
+        closeCommentModal(); showLoader(); 
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await res.json();
-            if (result.result === 'success') { await loadPosts(); } 
-            else alert("오류: " + result.message);
-        } catch (e) { alert("에러 발생!"); }
-        finally { hideLoader(); } 
+            if (result.result === 'success') await loadPosts(); else alert("오류: " + result.message);
+        } catch (e) {} finally { hideLoader(); } 
     }
 
     async function deleteComment(commentId) {
-        const password = prompt("댓글을 삭제하려면 비밀번호를 입력하세요:");
-        if (!password) return;
+        let password = isAdmin ? ADMIN_PW : prompt("댓글을 삭제하려면 비밀번호를 입력하세요:");
+        if (!isAdmin && !password) return;
+        if (isAdmin && !confirm("관리자 권한으로 강제 삭제하시겠습니까?")) return;
         
         showLoader(); 
         try {
-            const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: 'delete_comment', commentId: commentId, password: password }) });
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete_comment', commentId: commentId, password: password }) });
             const result = await res.json();
-            if (result.result === 'success') { await loadPosts(); } 
-            else alert("삭제 실패: " + result.message);
-        } catch (e) { alert("에러 발생!"); }
-        finally { hideLoader(); } 
+            if (result.result === 'success') await loadPosts(); else alert("삭제 실패: " + result.message);
+        } catch (e) {} finally { hideLoader(); } 
     }
 
     window.onload = loadPosts;
